@@ -1,0 +1,6 @@
+1,mimimi,momomo,mamama,mememe,avanzado,3.0
+2,Introducción a la Programación en Java,Aprende los fundamentos de la programación con Java, uno de los lenguajes más populares y versátiles., Curso, Dominar los conceptos básicos de Java y la programación orientada a objetos., Principiante, 20.5), 
+3,Desarrollo Web con HTML,CSS y JavaScript,Cubre los aspectos esenciales del desarrollo web, desde la estructura y el diseño hasta la interactividad., Curso, Crear y diseñar páginas web interactivas y modernas., Intermedio, 30.0), 
+4,Bases de Datos SQL y NoSQL,Explora los sistemas de gestión de bases de datos, tanto relacionales como no relacionales, y aprende a manejar grandes volúmenes de datos., Curso, Desarrollar habilidades en la administración y optimización de bases de datos., Intermedio, 25.0), 
+5,Ciencia de Datos con Python,Introduce los conceptos y herramientas básicas para la ciencia de datos, incluyendo análisis de datos, visualización y machine learning., Curso, Adquirir habilidades para analizar y visualizar datos utilizando Python., Avanzado, 40.0), 
+6,Seguridad Informática y Ethical Hacking,Conoce los principios de la seguridad informática y las técnicas de hacking ético para proteger sistemas y redes., Curso, Aprender a identificar y mitigar vulnerabilidades en sistemas informáticos., Avanzado, 35.0)
