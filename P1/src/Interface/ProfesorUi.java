@@ -96,8 +96,10 @@ public class ProfesorUi {
             System.out.println("3. Modificar Learning Path");
             System.out.println("4. Agregar Actividad");
             System.out.println("5. Ver mis learning Paths");
-            System.out.println("6. Calificar Quizzes");
-            System.out.println("7. Salir");
+            System.out.println("6. clonar Learning Path de otro profesor");
+            System.out.println("7. Califiar Examen");
+            System.out.println("8. Calificar Quizzes");
+            System.out.println("9. Salir");
             System.out.print("Seleccione una opción: ");
             int opcion = scanner.nextInt();
             scanner.nextLine();  // Consumir el salto de línea
@@ -118,14 +120,16 @@ public class ProfesorUi {
                 case 5:
                     verLearningPathsCreados();
                     break;
-                    
                 case 6:
-                    calificarExamenes(profesor);
+                    clonarLearningPath();
                     break;
                 case 7:
-                    calificarQuizzes(profesor);
+                    calificarExamenes(profesor);
                     break;
                 case 8:
+                    calificarQuizzes(profesor);
+                    break;
+                case 9:
                     System.out.println("Saliendo...");
                     continuar = false;
                     break;
@@ -278,6 +282,57 @@ public class ProfesorUi {
         System.out.println("Actividad agregada exitosamente al Learning Path: " + lp.getTitulo());
     }
     
+    private static void clonarLearningPath() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("\n=== Clonar Learning Path ===");
+        System.out.println("Lista de Learning Paths disponibles:");
+        List<LearningPath> learningPaths = ArchivoPersistencia.cargarLearningPaths();
+
+        // Mostrar todos los Learning Paths con detalles
+        for (LearningPath lp : learningPaths) {
+            System.out.println("ID: " + lp.getId() + " | Título: " + lp.getTitulo() + " | Profesor ID: " + lp.getIdProfesor());
+        }
+
+        System.out.print("Ingrese el ID del Learning Path que desea clonar: ");
+        int idClonar = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        // Buscar el Learning Path por ID
+        LearningPath lpOriginal = learningPaths.stream()
+            .filter(lp -> lp.getId() == idClonar)
+            .findFirst()
+            .orElse(null);
+
+        if (lpOriginal == null) {
+            System.out.println("Learning Path con ID " + idClonar + " no encontrado.");
+            return;
+        }
+
+        // Generar un nuevo ID para el clon
+        int nuevoId = learningPaths.size() + 1;
+
+        // Clonar el Learning Path
+        LearningPath clon = profesor.clonarLearningPath(lpOriginal, nuevoId);
+
+        // Guardar en persistencia
+        ArchivoPersistencia.guardarLearningPath(clon);
+
+        System.out.println("\nClonado exitosamente el Learning Path:");
+        System.out.println("ID: " + clon.getId());
+        System.out.println("Título: " + clon.getTitulo());
+        System.out.println("Descripción: " + clon.getDescripcion());
+        System.out.println("Tipo: " + clon.getTipo());
+        System.out.println("Objetivo: " + clon.getObjetivo());
+        System.out.println("Nivel de Dificultad: " + clon.getNivelDificultad());
+        System.out.println("Tiempo Estimado: " + clon.getTiempoEstimado() + " horas");
+        System.out.println("Actividades: ");
+        for (Actividad actividad : clon.getActividades()) {
+            System.out.println("\t- " + actividad.getNombre() + " (" + actividad.getTipo() + ")");
+        }
+    }
+
+
     
 
 

@@ -175,7 +175,37 @@ public class Profesor extends Usuario {
         System.out.println("---------------------------------------------");
     }
 
-    
+    public LearningPath clonarLearningPath(LearningPath lpOriginal, int nuevoId) {
+        LearningPath clon = new LearningPath(
+            nuevoId,
+            this.idProfesor, // Asignar al profesor actual
+            lpOriginal.getTitulo() + " (Copia)",
+            lpOriginal.getDescripcion(),
+            lpOriginal.getTipo(),
+            lpOriginal.getObjetivo(),
+            lpOriginal.getNivelDificultad(),
+            lpOriginal.getTiempoEstimado()
+        );
+
+        // Clonar actividades
+        for (Actividad actividad : lpOriginal.getActividades()) {
+            Actividad actividadClonada = new Actividad(
+                actividad.getNombre(),
+                actividad.getTipo(),
+                actividad.getId(),
+                actividad.getDescripcion(),
+                actividad.getObjetivo(),
+                actividad.getNivelDificultad(),
+                actividad.getDuracion()
+            );
+            clon.agregarActividad(actividadClonada);
+        }
+
+        this.crearLearningPath(clon); // Agregar el clon a los Learning Paths del profesor
+        return clon;
+    }
+
+
     
 }
 
