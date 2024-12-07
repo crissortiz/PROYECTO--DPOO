@@ -9,6 +9,7 @@ import Proyecto1.Estudiante;
 import Proyecto1.Profesor;
 import Proyecto1.LearningPath;
 import Proyecto1.Actividad;
+import Proyecto1.ProgresoEstudiante;
 
 
 import java.util.ArrayList;
@@ -31,7 +32,15 @@ public class ArchivoPersistencia {
                 String contrasena = datos[1];
                 String correo = datos[2];
                 int idEstudiante = Integer.parseInt(datos[3]);
-                estudiantes.add(new Estudiante(nombreUsuario, contrasena, correo, idEstudiante));
+                Estudiante estudiante = new Estudiante(nombreUsuario, contrasena, correo, idEstudiante);
+
+                // Cargar los IDs de los Learning Paths inscritos
+                for (int i = 4; i < datos.length; i++) {
+                    int idLearningPath = Integer.parseInt(datos[i]);
+                    ProgresoEstudiante progreso = new ProgresoEstudiante(idLearningPath);
+                    estudiante.getProgresos().put(idLearningPath, progreso);
+                }
+                estudiantes.add(estudiante);
             }
         } catch (IOException e) {
             System.out.println("Error al cargar estudiantes: " + e.getMessage());
@@ -39,14 +48,22 @@ public class ArchivoPersistencia {
         return estudiantes;
     }
 
+
     public static void guardarEstudiante(Estudiante estudiante) {
         try (FileWriter fw = new FileWriter(ESTUDIANTES_PATH, true)) {
             fw.write(estudiante.getNombreUsuario() + "," + estudiante.getContrasena() + "," +
-                     estudiante.getCorreo() + "," + estudiante.getIdEstudiante() + "\n");
+                     estudiante.getCorreo() + "," + estudiante.getIdEstudiante());
+
+            // Agregar los IDs de los Learning Paths inscritos
+            for (Integer idLearningPath : estudiante.getProgresos().keySet()) {
+                fw.write("," + idLearningPath);
+            }
+            fw.write("\n");
         } catch (IOException e) {
             System.out.println("Error al guardar estudiante: " + e.getMessage());
         }
     }
+
 
     public static ArrayList<Profesor> cargarProfesores() {
         ArrayList<Profesor> profesores = new ArrayList<>();
@@ -80,51 +97,46 @@ public class ArchivoPersistencia {
         try (BufferedReader br = new BufferedReader(new FileReader(LEARNING_PATHS_PATH))) {
             String linea;
             while ((linea = br.readLine()) != null) {
-                if (linea.trim().isEmpty()) {
-                    continue; // Ignorar líneas vacías
-                }
-
-                String[] datos = linea.split(",");
-                if (datos.length < 8) { // Verificar que hay al menos 8 elementos
-                    System.out.println("Línea malformada, ignorada: " + linea);
-                    continue;
-                }
-
-                int id = Integer.parseInt(datos[0]);
-                int idProfesor = Integer.parseInt(datos[1]); // Cargar el ID del profesor
-                String titulo = datos[2];
-                String descripcion = datos[3];
-                String tipo = datos[4];
-                String objetivo = datos[5];
-                String nivelDificultad = datos[6];
-                double tiempoEstimado = Double.parseDouble(datos[7]);
-
+                String[] partes = linea.split(",");
+                
+                // Leer los campos obligatorios
+                int id = Integer.parseInt(partes[0]);
+                int idProfesor = Integer.parseInt(partes[1]); // Leer ID del profesor
+                String titulo = partes[2];
+                String descripcion = partes[3];
+                String tipo = partes[4];
+                String objetivo = partes[5];
+                String nivelDificultad = partes[6];
+                double tiempoEstimado = Double.parseDouble(partes[7]);
+                
+                // Crear el Learning Path
                 LearningPath lp = new LearningPath(id, idProfesor, titulo, descripcion, tipo, objetivo, nivelDificultad, tiempoEstimado);
 
-                // Leer actividades si existen
-                if (datos.length > 8) {
-                    String[] actividadesDatos = datos[8].split(";");
-                    for (String actividadData : actividadesDatos) {
-                        if (!actividadData.trim().isEmpty()) { // Ignorar actividades vacías
-                            String[] actividadCampos = actividadData.split(";");
-                            int idActividad = Integer.parseInt(actividadCampos[0]);
-                            String nombre = actividadCampos[1];
-                            String tipoActividad = actividadCampos[2];
-                            String descripcionActividad = actividadCampos[3];
-                            int duracion = Integer.parseInt(actividadCampos[4]);
-                            Actividad actividad = new Actividad(nombre, tipoActividad, idActividad, descripcionActividad, "", "", duracion);
-                            lp.agregarActividad(actividad);
-                        }
+                // Cargar actividades, si existen
+                if (partes.length > 8) {
+                    String[] actividades = partes[8].split("\\|");
+                    for (String actividadStr : actividades) {
+                        String[] actividadPartes = actividadStr.split(";");
+                        int idActividad = Integer.parseInt(actividadPartes[0]);
+                        String nombre = actividadPartes[1];
+                        String tipoActividad = actividadPartes[2];
+                        String descripcionActividad = actividadPartes[3];
+                        int duracion = Integer.parseInt(actividadPartes[4]);
+                        Actividad actividad = new Actividad(nombre, tipoActividad, idActividad, descripcionActividad, "", "", duracion);
+                        lp.agregarActividad(actividad);
                     }
                 }
 
+                // Agregar el Learning Path a la lista
                 learningPaths.add(lp);
             }
-        } catch (IOException | NumberFormatException e) {
+        } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Error al cargar Learning Paths: " + e.getMessage());
         }
         return learningPaths;
     }
+
+
 
 
     public static void guardarLearningPath(LearningPath learningPath) {
@@ -162,28 +174,56 @@ public class ArchivoPersistencia {
     
     
     public static void actualizarLearningPaths(List<LearningPath> learningPaths) {
-        try (FileWriter fw = new FileWriter(LEARNING_PATHS_PATH, false)) {
+        try (FileWriter fw = new FileWriter(LEARNING_PATHS_PATH, false)) { // Sobrescribir archivo
             for (LearningPath lp : learningPaths) {
-                // Guardar datos básicos del Learning Path
-                fw.write(lp.getId() + "," + lp.getTitulo() + "," +
-                         lp.getDescripcion() + "," + lp.getTipo() + "," +
-                         lp.getObjetivo() + "," + lp.getNivelDificultad() + "," +
-                         lp.getTiempoEstimado());
+                StringBuilder sb = new StringBuilder();
+                sb.append(lp.getId()).append(",")
+                  .append(lp.getTitulo()).append(",")
+                  .append(lp.getDescripcion()).append(",")
+                  .append(lp.getTipo()).append(",")
+                  .append(lp.getObjetivo()).append(",")
+                  .append(lp.getNivelDificultad()).append(",")
+                  .append(lp.getTiempoEstimado()).append(",")
+                  .append(lp.getIdProfesor()); // Incluir ID del profesor
 
-                // Guardar las actividades asociadas al Learning Path
-                for (Actividad actividad : lp.getActividades()) {
-                    fw.write("," + actividad.getId() + ";" + actividad.getNombre() + ";" +
-                             actividad.getTipo() + ";" + actividad.getDescripcion() + ";" +
-                             actividad.getDuracion());
+                // Serializar actividades, si existen
+                if (!lp.getActividades().isEmpty()) {
+                    sb.append(",");
+                    for (Actividad actividad : lp.getActividades()) {
+                        sb.append(actividad.getId()).append(";")
+                          .append(actividad.getNombre()).append(";")
+                          .append(actividad.getTipo()).append(";")
+                          .append(actividad.getDescripcion()).append(";")
+                          .append(actividad.getDuracion()).append("|");
+                    }
+                    sb.deleteCharAt(sb.length() - 1); // Quitar el último "|"
                 }
 
-                fw.write("\n"); // Finalizar línea del Learning Path
+                fw.write(sb.toString() + "\n");
             }
-            System.out.println("Archivo de Learning Paths actualizado correctamente con actividades.");
         } catch (IOException e) {
             System.out.println("Error al actualizar Learning Paths: " + e.getMessage());
         }
     }
+
+    
+    public static void actualizarEstudiantes(List<Estudiante> estudiantes) {
+        try (FileWriter fw = new FileWriter(ESTUDIANTES_PATH, false)) { // Sobrescribir archivo
+            for (Estudiante estudiante : estudiantes) {
+                fw.write(estudiante.getNombreUsuario() + "," + estudiante.getContrasena() + "," +
+                         estudiante.getCorreo() + "," + estudiante.getIdEstudiante());
+
+                // Agregar los IDs de los Learning Paths inscritos
+                for (Integer idLearningPath : estudiante.getProgresos().keySet()) {
+                    fw.write("," + idLearningPath);
+                }
+                fw.write("\n");
+            }
+        } catch (IOException e) {
+            System.out.println("Error al actualizar estudiantes: " + e.getMessage());
+        }
+    }
+
 
 
 }

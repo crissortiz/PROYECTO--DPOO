@@ -23,14 +23,21 @@ public class Estudiante extends Usuario {
 
    
     public void inscribirseEnLearningPath(LearningPath lp) {
-        if (!progresos.containsKey(lp.getId())) {
-            ProgresoEstudiante progreso = new ProgresoEstudiante(lp.getActividades().size());
-            progresos.put(lp.getId(), progreso);
-            System.out.println("Estudiante inscrito en el Learning Path: " + lp.getTitulo());
-        } else {
-            System.out.println("Ya está inscrito en este Learning Path.");
+        if (progresos.containsKey(lp.getId())) {
+            System.out.println("Ya estás inscrito en este Learning Path: " + lp.getTitulo());
+            return;
         }
+
+        // Crear un nuevo progreso para este Learning Path
+        ProgresoEstudiante progreso = new ProgresoEstudiante(lp.getId());
+        for (Actividad actividad : lp.getActividades()) {
+            progreso.agregarActividadPendiente(actividad);
+        }
+
+        progresos.put(lp.getId(), progreso);
+        System.out.println("Te has inscrito exitosamente al Learning Path: " + lp.getTitulo());
     }
+
 
     
     public void completarActividad(int idLearningPath, String nombreActividad) {
@@ -72,6 +79,11 @@ public class Estudiante extends Usuario {
 	        System.out.println("No estás inscrito en este Learning Path o no has comenzado.");
 	    }
 	}
+	
+	public Map<Integer, ProgresoEstudiante> getProgresos() {
+	    return progresos;
+	}
+
 
 
 }

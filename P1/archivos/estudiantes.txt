@@ -1,6 +1,6 @@
-cris,123,o@gmail.com,1
 alex,456,a@gmail.com,2
 sara,789,s@gmail.com,3
 juan,321,j@gmail.com,4
 maria,654,m@gmail.com,5
 tata,toto,t@gmail.com,6
+cris,123,o@gmail.com,1,1

@@ -1,10 +1,15 @@
 package Interface;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import Persistencia.ArchivoPersistencia;
 import Proyecto1.Estudiante;
+import Proyecto1.LearningPath;
+import Proyecto1.ProgresoEstudiante;
+import Proyecto1.Actividad;
 
+							
 public class EstudianteUi {
 
     private static Scanner scanner = new Scanner(System.in);
@@ -82,22 +87,24 @@ public class EstudianteUi {
         while (continuar) {
             System.out.println("\nBienvenido, " + estudiante.getNombreUsuario());
             System.out.println("1. Ver perfil");
-            System.out.println("2. Opción de ejemplo 2");
-            System.out.println("3. Salir");
+            System.out.println("2. Inscribirse en un Learning Path");
+            System.out.println("3. Ver mi progreso en un Learning Path"); // Nueva opción
+            System.out.println("4. Salir");
             System.out.print("Seleccione una opción: ");
             int opcion = scanner.nextInt();
             scanner.nextLine();  // Consumir el salto de línea
 
             switch (opcion) {
                 case 1:
-                    System.out.println("Perfil del Estudiante:");
-                    System.out.println("Nombre: " + estudiante.getNombreUsuario());
-                    System.out.println("Correo: " + estudiante.getCorreo());
+                    verPerfil(estudiante);
                     break;
                 case 2:
-                    System.out.println("Opción 2 seleccionada.");
+                    inscribirseEnLearningPath(estudiante);
                     break;
                 case 3:
+                    verProgresoEnLearningPath(estudiante); // Llamar al nuevo método
+                    break;
+                case 4:
                     System.out.println("Saliendo...");
                     continuar = false;
                     break;
@@ -106,7 +113,117 @@ public class EstudianteUi {
                     break;
             }
         }
+    }
+
+    
+
+    
+    private static void verPerfil(Estudiante estudiante) {
+        System.out.println("\n--- Perfil del Estudiante ---");
+        System.out.println("Nombre de usuario: " + estudiante.getNombreUsuario());
+        System.out.println("Correo: " + estudiante.getCorreo());
+        System.out.println("ID del Estudiante: " + estudiante.getIdEstudiante());
+        
+        // Mostrar los Learning Paths inscritos
+        if (!estudiante.getProgresos().isEmpty()) {
+            System.out.println("\nLearning Paths inscritos:");
+            for (Integer idLearningPath : estudiante.getProgresos().keySet()) {
+                ProgresoEstudiante progreso = estudiante.getProgresos().get(idLearningPath);
+                System.out.println("- ID del Learning Path: " + idLearningPath);
+                System.out.println("  Progreso: " + progreso.getPorcentajeCompletado() + "%");
+
+                // Detalles de actividades completadas y pendientes
+                System.out.println("  Actividades completadas:");
+                for (Actividad actividad : progreso.getActividadesCompletadas()) {
+                    System.out.println("    - " + actividad.getNombre() + " (Duración: " + actividad.getDuracion() + " min)");
+                }
+
+                System.out.println("  Actividades pendientes:");
+                for (Actividad actividad : progreso.getActividadesPendientes()) {
+                    System.out.println("    - " + actividad.getNombre() + " (Duración: " + actividad.getDuracion() + " min)");
+                }
+            }
+        } else {
+            System.out.println("\nNo está inscrito en ningún Learning Path.");
         }
+    }
+
+
+    
+    private static void inscribirseEnLearningPath(Estudiante estudiante) {
+        List<LearningPath> learningPaths = ArchivoPersistencia.cargarLearningPaths();
+
+        System.out.println("\n--- Learning Paths Disponibles ---");
+        for (LearningPath lp : learningPaths) {
+            System.out.println("ID: " + lp.getId() + " | Título: " + lp.getTitulo() +
+                               " | Descripción: " + lp.getDescripcion());
+        }
+
+        System.out.print("\nIngrese el ID del Learning Path al que desea inscribirse: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        // Buscar el Learning Path seleccionado
+        LearningPath lp = learningPaths.stream()
+            .filter(path -> path.getId() == idLearningPath)
+            .findFirst()
+            .orElse(null);
+
+        if (lp == null) {
+            System.out.println("Learning Path con ID " + idLearningPath + " no encontrado.");
+            return;
+        }
+
+        estudiante.inscribirseEnLearningPath(lp);
+
+        // Actualizar persistencia
+        List<Estudiante> estudiantes = ArchivoPersistencia.cargarEstudiantes();
+        estudiantes.removeIf(e -> e.getIdEstudiante() == estudiante.getIdEstudiante());
+        estudiantes.add(estudiante);
+        ArchivoPersistencia.actualizarEstudiantes(estudiantes);
+    }
+    
+ // Nuevo método para ver progreso
+    private static void verProgresoEnLearningPath(Estudiante estudiante) {
+        // Mostrar los Learning Paths inscritos
+        Map<Integer, ProgresoEstudiante> progresos = estudiante.getProgresos();
+
+        if (progresos.isEmpty()) {
+            System.out.println("No estás inscrito en ningún Learning Path.");
+            return;
+        }
+
+        System.out.println("\n--- Learning Paths Inscritos ---");
+        for (Integer id : progresos.keySet()) {
+            System.out.println("ID: " + id);
+        }
+
+        System.out.print("\nSeleccione el ID del Learning Path para ver su progreso: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine();  // Limpiar buffer
+
+        ProgresoEstudiante progreso = progresos.get(idLearningPath);
+        if (progreso == null) {
+            System.out.println("No estás inscrito en el Learning Path con ID " + idLearningPath + ".");
+            return;
+        }
+
+        // Mostrar detalles del progreso
+        System.out.println("\n--- Progreso del Learning Path ID " + idLearningPath + " ---");
+        System.out.println("Porcentaje completado: " + progreso.getPorcentajeCompletado() + "%");
+
+        System.out.println("\nActividades Completadas:");
+        for (Actividad actividad : progreso.getActividadesCompletadas()) {
+            System.out.println("- " + actividad.getNombre() + " (Duración: " + actividad.getDuracion() + " min)");
+        }
+
+        System.out.println("\nActividades Pendientes:");
+        for (Actividad actividad : progreso.getActividadesPendientes()) {
+            System.out.println("- " + actividad.getNombre() + " (Duración: " + actividad.getDuracion() + " min)");
+        }
+    }
+
+    
 
     private static int generarIdEstudiante() {
         List<Estudiante> estudiantes = ArchivoPersistencia.cargarEstudiantes();

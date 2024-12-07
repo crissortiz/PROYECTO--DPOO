@@ -1,3 +1,2 @@
-
-1,1,titulo,descripcion,curso,objetivo,intermedio,6.0
+1,1,titulo,descripcion,curso,objetivo,intermedio,6.0,1;Actividad 1;Examen;Descripcion;40
 2,4,titulo (Copia),descripcion,curso,objetivo,intermedio,6.0
