@@ -97,13 +97,7 @@ public class Profesor extends Usuario {
         System.out.println("Learning Path con ID " + idLearningPath + " no encontrado.");
     }
     
-    public void clonarLearningPath(LearningPath lpOriginal) {
-        LearningPath clon = lpOriginal.clonar();
-        this.crearLearningPath(clon);
-        System.out.println("Clonado el Learning Path: " + lpOriginal.getTitulo());
-    }
     
-    // Método auixiliar a clonarLearningPath, busca un Learning Path por ID
     public LearningPath buscarLearningPathPorId(int id) {
         for (LearningPath lp : learningPaths) {
             if (lp.getId() == id) {
@@ -140,6 +134,48 @@ public class Profesor extends Usuario {
         }
         System.out.println("Learning Path no encontrado: " + tituloLearningPath);
     }
+    
+    
+    public void verLearningPathsCreados() {
+        System.out.println("\n=== Learning Paths creados por el Profesor ===");
+        // Filtrar los Learning Paths creados por este profesor
+        List<LearningPath> learningPathsCreados = learningPaths.stream()
+                .filter(lp -> lp.getIdProfesor() == this.idProfesor)
+                .toList();
+
+        if (learningPathsCreados.isEmpty()) {
+            System.out.println("No hay Learning Paths creados por usted.");
+            return;
+        }
+
+        for (LearningPath lp : learningPathsCreados) {
+            System.out.println("---------------------------------------------");
+            System.out.println("ID: " + lp.getId());
+            System.out.println("Título: " + lp.getTitulo());
+            System.out.println("Descripción: " + lp.getDescripcion());
+            System.out.println("Tipo: " + lp.getTipo());
+            System.out.println("Objetivo: " + lp.getObjetivo());
+            System.out.println("Nivel de Dificultad: " + lp.getNivelDificultad());
+            System.out.println("Tiempo Estimado: " + lp.getTiempoEstimado() + " horas");
+
+            // Mostrar actividades
+            if (!lp.getActividades().isEmpty()) {
+                System.out.println("Actividades:");
+                for (Actividad actividad : lp.getActividades()) {
+                    System.out.println("\t- ID: " + actividad.getId());
+                    System.out.println("\t  Nombre: " + actividad.getNombre());
+                    System.out.println("\t  Tipo: " + actividad.getTipo());
+                    System.out.println("\t  Descripción: " + actividad.getDescripcion());
+                    System.out.println("\t  Duración: " + actividad.getDuracion() + " minutos");
+                }
+            } else {
+                System.out.println("No hay actividades asociadas a este Learning Path.");
+            }
+        }
+        System.out.println("---------------------------------------------");
+    }
+
+    
     
 }
 

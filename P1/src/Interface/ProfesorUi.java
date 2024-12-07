@@ -6,151 +6,298 @@ import java.util.Scanner;
 import Persistencia.ArchivoPersistencia;
 import Proyecto1.LearningPath;
 import Proyecto1.Profesor;
+import Proyecto1.Actividad;
 
 public class ProfesorUi {
 	
-	private Profesor profesor; // Instancia del profesor
+	private static Profesor profesor;	
 
-    // Constructor que recibe una instancia de Profesor
-    public ProfesorUi(Profesor profesor) {
-        this.profesor = profesor;
-    }
-    
+    private static Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        Profesor profesor = new Profesor(nombreUsuario, contrasena, correo, idProfesor);
-        ProfesorUi profesorUi = new ProfesorUi(profesor);
-        profesorUi.mostrarMenu();
+        mostrarMenu();
     }
 
-    // Mostrar menú de opciones
-    public void mostrarMenu() {
-        Scanner scanner = new Scanner(System.in);
-        int opcion;
+    private static void mostrarMenu() {
+        System.out.println("1. Iniciar sesión");
+        System.out.println("2. Registrarse");
+        System.out.print("Seleccione una opción: ");
+        int opcion = scanner.nextInt();
+        scanner.nextLine();  // Consumir el salto de línea
 
-        do {
-            System.out.println("\n=== Menú Profesor ===");
-            System.out.println("1. Crear Learning Path");
-            System.out.println("2. Listar Learning Paths");
-            System.out.println("3. Calificar Actividad");
-            System.out.println("4. Revisar Tasa de Éxito");
-            System.out.println("5. Clonar Learning Path");
-            System.out.println("0. Salir");
+        switch (opcion) {
+            case 1:
+                iniciarSesion();
+                break;
+            case 2:
+                registrarse();
+                break;
+            default:
+                System.out.println("Opción no válida.");
+                break;
+        }
+    }
+
+    private static void iniciarSesion() {
+        System.out.print("Ingrese nombre de usuario: ");
+        String nombreUsuario = scanner.nextLine();
+        System.out.print("Ingrese contraseña: ");
+        String contrasena = scanner.nextLine();
+
+        List<Profesor> profesores = ArchivoPersistencia.cargarProfesores();
+        boolean encontrado = false;
+
+        for (Profesor p : profesores) { // Evitar colisión con la variable estática
+            if (p.getNombreUsuario().equals(nombreUsuario) && p.getContrasena().equals(contrasena)) {
+                System.out.println("Inicio de sesión exitoso. Bienvenido, " + nombreUsuario + "!");
+                profesor = p; // Asignar a la variable estática
+                encontrado = true;
+                mostrarMenuProfesor(profesor);
+                break;
+            }
+        }
+
+        if (!encontrado) {
+            System.out.println("Nombre de usuario o contraseña incorrectos.");
+        }
+    }
+
+
+    private static void registrarse() {
+        System.out.print("Ingrese nombre de usuario: ");
+        String nombreUsuario = scanner.nextLine();
+        System.out.print("Ingrese contraseña: ");
+        String contrasena = scanner.nextLine();
+        System.out.print("Ingrese correo: ");
+        String correo = scanner.nextLine();
+
+        int idProfesor = generarIdProfesor();
+        Profesor nuevoProfesor = new Profesor(nombreUsuario, contrasena, correo, idProfesor);
+        ArchivoPersistencia.guardarProfesor(nuevoProfesor);
+
+        System.out.println("Registro exitoso. Ahora puede iniciar sesión.");
+        profesor = nuevoProfesor; // Asignar al profesor registrado
+        mostrarMenuProfesor(nuevoProfesor);
+    }
+
+
+    private static void mostrarMenuProfesor(Profesor profesor) {
+    	// Cargar los LearningPaths desde el archivo
+        List<LearningPath> learningPaths = ArchivoPersistencia.cargarLearningPaths();
+        profesor.getLearningPaths().clear(); // Limpiar la lista actual
+        profesor.getLearningPaths().addAll(learningPaths); // Agregar los LearningPaths cargados
+
+    	boolean continuar = true;
+
+        while (continuar) {
+            System.out.println("\nBienvenido, " + profesor.getNombreUsuario());
+            System.out.println("1. Ver perfil");
+            System.out.println("2. Crear Learning Path");
+            System.out.println("3. Modificar Learning Path");
+            System.out.println("4. Agregar Actividad");
+            System.out.println("5. Ver mis learning Paths");
+            System.out.println("6. Calificar Quizzes");
+            System.out.println("7. Salir");
             System.out.print("Seleccione una opción: ");
-            opcion = scanner.nextInt();
-            scanner.nextLine(); // Limpiar buffer
+            int opcion = scanner.nextInt();
+            scanner.nextLine();  // Consumir el salto de línea
 
             switch (opcion) {
                 case 1:
-                    crearLearningPath();
+                    mostrarPerfil(profesor);
                     break;
                 case 2:
-                    listarLearningPaths();
+                	crearLearningPath();
                     break;
                 case 3:
-                    calificarActividad();
+                	modificarLearningPath(profesor);
                     break;
                 case 4:
-                    revisarTasaDeExito();
+                    agregarActividad(profesor);
                     break;
                 case 5:
-                    clonarLearningPath();
+                    verLearningPathsCreados();
                     break;
-                case 0:
-                    System.out.println("Saliendo del sistema del Profesor...");
+                    
+                case 6:
+                    calificarExamenes(profesor);
+                    break;
+                case 7:
+                    calificarQuizzes(profesor);
+                    break;
+                case 8:
+                    System.out.println("Saliendo...");
+                    continuar = false;
                     break;
                 default:
-                    System.out.println("Opción no válida.");
+                    System.out.println("Opción no válida. Intente de nuevo.");
+                    break;
             }
-        } while (opcion != 0);
-
-        scanner.close();
+        }
     }
 
-    // Función para crear un nuevo Learning Path
-    public void crearLearningPath() {
-        Scanner scanner = new Scanner(System.in);
+    private static void mostrarPerfil(Profesor profesor) {
+        System.out.println("Perfil del Profesor:");
+        System.out.println("Nombre: " + profesor.getNombreUsuario());
+        System.out.println("Correo: " + profesor.getCorreo());
+    }
 
-        System.out.println("\n=== Crear un nuevo Learning Path ===");
-
-        System.out.print("Ingrese el ID: ");
-        int id = scanner.nextInt();
-        scanner.nextLine(); // Limpiar el buffer
-
-        System.out.print("Título: ");
+    private static void crearLearningPath() {
+        System.out.print("Ingrese título del Learning Path: ");
         String titulo = scanner.nextLine();
 
-        System.out.print("Descripción: ");
+        System.out.print("Ingrese descripción del Learning Path: ");
         String descripcion = scanner.nextLine();
 
-        System.out.print("Tipo: ");
+        System.out.print("Ingrese tipo del Learning Path (por ejemplo: Curso): ");
         String tipo = scanner.nextLine();
 
-        System.out.print("Objetivo: ");
+        System.out.print("Ingrese objetivo del Learning Path: ");
         String objetivo = scanner.nextLine();
 
-        System.out.print("Nivel de dificultad: ");
+        System.out.print("Ingrese nivel de dificultad (por ejemplo: Principiante, Intermedio, Avanzado): ");
         String nivelDificultad = scanner.nextLine();
 
-        System.out.print("Tiempo estimado (en horas): ");
+        System.out.print("Ingrese tiempo estimado en horas: ");
         double tiempoEstimado = scanner.nextDouble();
 
-        // Crear el Learning Path
-        LearningPath nuevoLearningPath = new LearningPath(id, titulo, descripcion, tipo, objetivo, nivelDificultad, tiempoEstimado);
+        // Generar un ID único para el Learning Path
+        int id = generarIdLearningPath();
 
+        // Crear el Learning Path con el ID del profesor
+        LearningPath nuevoLearningPath = new LearningPath(id, profesor.getIdProfesor(), titulo, descripcion, tipo, objetivo, nivelDificultad, tiempoEstimado);
         profesor.crearLearningPath(nuevoLearningPath);
+        ArchivoPersistencia.guardarLearningPath(nuevoLearningPath);
+
         System.out.println("Learning Path creado exitosamente.");
     }
 
-    // Función para listar Learning Paths
-    public void listarLearningPaths() {
-        System.out.println("\n=== Lista de Learning Paths ===");
-        profesor.listarLearningPaths(); // Llama al método que imprime la lista
-    }
-    
-    // Función para calificar una actividad
-    public void calificarActividad() {
+    private static void modificarLearningPath(Profesor profesor) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("\n=== Calificar Actividad ===");
-        System.out.print("Nombre del Learning Path: ");
-        String nombreLearningPath = scanner.nextLine();
+        System.out.print("Ingrese el ID del Learning Path a modificar: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
 
-        System.out.print("Nombre de la Actividad: ");
-        String nombreActividad = scanner.nextLine();
+        LearningPath lp = profesor.buscarLearningPathPorId(idLearningPath);
+        if (lp == null) {
+            System.out.println("Learning Path con ID " + idLearningPath + " no encontrado.");
+            return; // Salir si no se encuentra el Learning Path
+        }
 
-        System.out.print("Calificación (0-100): ");
-        double calificacion = scanner.nextDouble();
+        System.out.print("Nuevo título: ");
+        String nuevoTitulo = scanner.nextLine();
+        System.out.print("Nueva descripción: ");
+        String nuevaDescripcion = scanner.nextLine();
+        System.out.print("Nuevo tipo: ");
+        String nuevoTipo = scanner.nextLine();
+        System.out.print("Nuevo objetivo: ");
+        String nuevoObjetivo = scanner.nextLine();
+        System.out.print("Nuevo nivel de dificultad: ");
+        String nuevoNivelDificultad = scanner.nextLine();
+        System.out.print("Nuevo tiempo estimado: ");
+        double nuevoTiempoEstimado = scanner.nextDouble();
 
-        profesor.calificarActividad(nombreLearningPath, nombreActividad, calificacion);
-    }
+        // Modificar los datos del Learning Path
+        profesor.modificarLearningPath(idLearningPath, nuevoTitulo, nuevaDescripcion, nuevoTipo, nuevoObjetivo, nuevoNivelDificultad, nuevoTiempoEstimado);
 
-    // Función para revisar la tasa de éxito de un Learning Path
-    public void revisarTasaDeExito() {
-        Scanner scanner = new Scanner(System.in);
+        // Actualizar la persistencia
+        ArchivoPersistencia.actualizarLearningPaths(profesor.getLearningPaths());
 
-        System.out.println("\n=== Revisar Tasa de Éxito ===");
-        System.out.print("Título del Learning Path: ");
-        String titulo = scanner.nextLine(); // Ahora pedimos el título en lugar del ID
+        System.out.println("\n¿Desea visualizar los cambios?");
+        System.out.println("1. Sí");
+        System.out.println("2. No");
+        System.out.print("Seleccione una opción: ");
+        int opcion = scanner.nextInt();
 
-        profesor.revisarTasaDeExito(titulo); // Llama al método con el título
-    } 
-
-    // Función para clonar un Learning Path existente
-    public void clonarLearningPath() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("\n=== Clonar Learning Path ===");
-        System.out.print("ID del Learning Path a clonar: ");
-        int id = scanner.nextInt();
-
-        // Buscar el Learning Path por ID
-        LearningPath lpOriginal = profesor.buscarLearningPathPorId(id);
-
-        if (lpOriginal != null) {
-            profesor.clonarLearningPath(lpOriginal); // Clona el Learning Path si existe
-            System.out.println("Learning Path clonado exitosamente.");
+        if (opcion == 1) {
+            visualizarLearningPath(idLearningPath);
         } else {
-            System.out.println("Learning Path con ID " + id + " no encontrado.");
+            System.out.println("Regresando al menú principal...");
         }
     }
-} 
+
+    private static void verLearningPathsCreados() {
+        profesor.verLearningPathsCreados();
+    }
+
+    private static void visualizarLearningPath(int idLearningPath) {
+        for (LearningPath lp : profesor.getLearningPaths()) {
+            if (lp.getId() == idLearningPath) {
+                System.out.println("\n--- Información del Learning Path ---");
+                System.out.println("Título: " + lp.getTitulo());
+                System.out.println("Descripción: " + lp.getDescripcion());
+                System.out.println("Tipo: " + lp.getTipo());
+                System.out.println("Objetivo: " + lp.getObjetivo());
+                System.out.println("Nivel de Dificultad: " + lp.getNivelDificultad());
+                System.out.println("Tiempo Estimado: " + lp.getTiempoEstimado() + " horas");
+                return;
+            }
+        }
+        System.out.println("Learning Path con ID " + idLearningPath + " no encontrado.");
+    }
+
+
+    private static void agregarActividad(Profesor profesor) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Ingrese el ID del Learning Path al que desea agregar una actividad: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        LearningPath lp = profesor.buscarLearningPathPorId(idLearningPath);
+        if (lp == null) {
+            System.out.println("Learning Path con ID " + idLearningPath + " no encontrado.");
+            return;
+        }
+
+        System.out.print("Ingrese el nombre de la actividad: ");
+        String nombre = scanner.nextLine();
+
+        System.out.print("Ingrese el tipo de la actividad (Quiz, Recurso, Examen): ");
+        String tipo = scanner.nextLine();
+
+        System.out.print("Ingrese la descripción de la actividad: ");
+        String descripcion = scanner.nextLine();
+
+        System.out.print("Ingrese la duración estimada en minutos: ");
+        int duracion = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        // Generar un ID único para la actividad
+        int idActividad = lp.getActividades().size() + 1;
+
+        Actividad nuevaActividad = new Actividad(nombre, tipo, idActividad, descripcion, "", "", duracion);
+
+        // Agregar la actividad al Learning Path
+        lp.agregarActividad(nuevaActividad);
+
+        // Actualizar persistencia
+        ArchivoPersistencia.actualizarLearningPaths(profesor.getLearningPaths());
+
+        System.out.println("Actividad agregada exitosamente al Learning Path: " + lp.getTitulo());
+    }
+    
+    
+
+
+    private static void calificarExamenes(Profesor profesor) {
+        System.out.println("Funcionalidad de calificar exámenes no implementada completamente.");
+    }
+
+    private static void calificarQuizzes(Profesor profesor) {
+        System.out.println("Funcionalidad de calificar quizzes no implementada completamente.");
+    }
+
+    private static int generarIdProfesor() {
+        List<Profesor> profesores = ArchivoPersistencia.cargarProfesores();
+        return profesores.size() + 1;
+    }
+
+    private static int generarIdLearningPath() {
+        List<LearningPath> learningPaths = ArchivoPersistencia.cargarLearningPaths();
+        return learningPaths.size() + 1;
+    }
+    
+    
+}

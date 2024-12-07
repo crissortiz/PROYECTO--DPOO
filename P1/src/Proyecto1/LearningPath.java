@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 public class LearningPath {
     private int id;
+    private int idProfesor;
     private String titulo;
     private String descripcion;
     private String tipo; 
@@ -19,8 +20,9 @@ public class LearningPath {
     
     private List<Estudiante> estudiantesInscritos;
 
-    public LearningPath(int id, String titulo, String descripcion, String tipo, String objetivo, String nivelDificultad, double tiempoEstimado) {
+    public LearningPath(int id, int idProfesor,  String titulo, String descripcion, String tipo, String objetivo, String nivelDificultad, double tiempoEstimado) {
         this.id = id;
+        this.idProfesor = idProfesor;
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.tipo = tipo;
@@ -35,6 +37,10 @@ public class LearningPath {
 
     public int getId() {
         return id;
+    }
+    
+    public int getIdProfesor() {
+        return idProfesor;
     }
 
     public String getTitulo() {
@@ -147,6 +153,7 @@ public class LearningPath {
     public LearningPath clonar() {
         return new LearningPath(
             this.id,
+            this.idProfesor,
             this.titulo + " (Copia)",
             this.descripcion,
             this.tipo,
