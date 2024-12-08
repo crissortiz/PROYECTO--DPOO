@@ -1,6 +1,8 @@
 package Proyecto1;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Actividad {
     private String nombre;
@@ -14,6 +16,7 @@ public class Actividad {
     private String resultado;
     private int duracion;
     private Map<Integer, String> resultadosEstudiantes;
+    private List<Actividad> actividadesSeguimiento;
 
     public Actividad(String nombre, String tipo, int id, String descripcion, String objetivo, String nivelDificultad, int duracion) {
         this.nombre = nombre;
@@ -27,6 +30,7 @@ public class Actividad {
         this.resultado = "pendiente";
         this.duracion = duracion;
         this.resultadosEstudiantes = new HashMap<>();
+        this.actividadesSeguimiento = new ArrayList<>();
     }
 
     public String getNombre() {
@@ -95,6 +99,15 @@ public class Actividad {
     public void setDuracion(int duracion) {
         this.duracion = duracion;
     }
+    
+    public List<Actividad> getActividadesSeguimiento() {
+        return actividadesSeguimiento;
+    }
+
+    public void agregarActividadSeguimiento(Actividad actividad) {
+        actividadesSeguimiento.add(actividad);
+    }
+    
     public void asignarAEstudiante(int idEstudiante) {
         resultadosEstudiantes.put(idEstudiante, ""); 
     }

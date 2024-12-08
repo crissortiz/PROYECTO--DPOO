@@ -96,10 +96,11 @@ public class ProfesorUi {
             System.out.println("3. Modificar Learning Path");
             System.out.println("4. Agregar Actividad");
             System.out.println("5. Ver mis learning Paths");
-            System.out.println("6. clonar Learning Path de otro profesor");
-            System.out.println("7. Califiar Examen");
-            System.out.println("8. Calificar Quizzes");
-            System.out.println("9. Salir");
+            System.out.println("6. Clonar Learning Path de otro profesor");
+            System.out.println("7. Establecer actividades de seguimiento ");
+            System.out.println("8. Califiar Examen");
+            System.out.println("9. Calificar Quizzes");
+            System.out.println("10. Salir");
             System.out.print("Seleccione una opción: ");
             int opcion = scanner.nextInt();
             scanner.nextLine();  // Consumir el salto de línea
@@ -124,12 +125,15 @@ public class ProfesorUi {
                     clonarLearningPath();
                     break;
                 case 7:
-                    calificarExamenes(profesor);
+                	establecerActividadesSeguimiento(profesor);
                     break;
                 case 8:
-                    calificarQuizzes(profesor);
+                    calificarExamenes(profesor);
                     break;
                 case 9:
+                    calificarQuizzes(profesor);
+                    break;
+                case 10:
                     System.out.println("Saliendo...");
                     continuar = false;
                     break;
@@ -331,6 +335,56 @@ public class ProfesorUi {
             System.out.println("\t- " + actividad.getNombre() + " (" + actividad.getTipo() + ")");
         }
     }
+    
+    private static void establecerActividadesSeguimiento(Profesor profesor) {
+        List<LearningPath> learningPaths = profesor.getLearningPaths();
+
+        if (learningPaths.isEmpty()) {
+            System.out.println("No tienes Learning Paths creados.");
+            return;
+        }
+
+        System.out.println("--- Learning Paths Creados ---");
+        for (LearningPath lp : learningPaths) {
+            System.out.println("ID: " + lp.getId() + " | Título: " + lp.getTitulo());
+        }
+
+        System.out.print("Ingrese el ID del Learning Path: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine();
+
+        LearningPath lp = learningPaths.stream()
+            .filter(path -> path.getId() == idLearningPath)
+            .findFirst()
+            .orElse(null);
+
+        if (lp == null) {
+            System.out.println("Learning Path no encontrado.");
+            return;
+        }
+
+        System.out.println("--- Actividades del Learning Path ---");
+        for (Actividad actividad : lp.getActividades()) {
+            System.out.println("ID: " + actividad.getId() + " | Nombre: " + actividad.getNombre());
+        }
+
+        System.out.print("Ingrese el ID de la actividad base: ");
+        int idActividadBase = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Ingrese los IDs de las actividades de seguimiento (separados por coma): ");
+        String[] idsSeguimiento = scanner.nextLine().split(",");
+        List<Integer> idsActividadesSeguimiento = new ArrayList<>();
+        for (String id : idsSeguimiento) {
+            idsActividadesSeguimiento.add(Integer.parseInt(id.trim()));
+        }
+
+        profesor.establecerActividadesSeguimiento(lp, idActividadBase, idsActividadesSeguimiento);
+
+        // Guardar los cambios
+        ArchivoPersistencia.actualizarLearningPaths(learningPaths);
+    }
+
 
 
     

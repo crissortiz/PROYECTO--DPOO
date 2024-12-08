@@ -31,7 +31,7 @@ public class Estudiante extends Usuario {
         // Crear un nuevo progreso para este Learning Path
         ProgresoEstudiante progreso = new ProgresoEstudiante(lp.getId());
         for (Actividad actividad : lp.getActividades()) {
-            progreso.agregarActividadPendiente(actividad);
+            progreso.agregarActividadPendiente(actividad); // Copiar actividades directamente
         }
 
         progresos.put(lp.getId(), progreso);
@@ -43,7 +43,7 @@ public class Estudiante extends Usuario {
     public void completarActividad(int idLearningPath, String nombreActividad) {
         ProgresoEstudiante progreso = progresos.get(idLearningPath);
         if (progreso != null) {
-            boolean actividadCompletada = progreso.completarActividad(nombreActividad);
+            boolean actividadCompletada = progreso.iniciarActividad(nombreActividad);
             if (actividadCompletada) {
                 System.out.println("Actividad '" + nombreActividad + "' completada con éxito en el Learning Path con ID " + idLearningPath + ".");
             } else {

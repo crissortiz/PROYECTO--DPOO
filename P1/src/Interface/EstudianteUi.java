@@ -88,7 +88,8 @@ public class EstudianteUi {
             System.out.println("\nBienvenido, " + estudiante.getNombreUsuario());
             System.out.println("1. Ver perfil");
             System.out.println("2. Inscribirse en un Learning Path");
-            System.out.println("3. Ver mi progreso en un Learning Path"); // Nueva opción
+            System.out.println("3. Ver mi progreso en un Learning Path");
+            System.out.println("4. Marcar inicio de una actividad");
             System.out.println("4. Salir");
             System.out.print("Seleccione una opción: ");
             int opcion = scanner.nextInt();
@@ -102,9 +103,12 @@ public class EstudianteUi {
                     inscribirseEnLearningPath(estudiante);
                     break;
                 case 3:
-                    verProgresoEnLearningPath(estudiante); // Llamar al nuevo método
+                	verProgresoLearningPath(estudiante); // Llamar al nuevo método
                     break;
                 case 4:
+                	marcarInicioActividad(estudiante); // Llamar al nuevo método
+                    break;
+                case 5:
                     System.out.println("Saliendo...");
                     continuar = false;
                     break;
@@ -183,32 +187,27 @@ public class EstudianteUi {
         ArchivoPersistencia.actualizarEstudiantes(estudiantes);
     }
     
- // Nuevo método para ver progreso
-    private static void verProgresoEnLearningPath(Estudiante estudiante) {
-        // Mostrar los Learning Paths inscritos
-        Map<Integer, ProgresoEstudiante> progresos = estudiante.getProgresos();
-
-        if (progresos.isEmpty()) {
-            System.out.println("No estás inscrito en ningún Learning Path.");
+    private static void verProgresoLearningPath(Estudiante estudiante) {
+        if (estudiante.getProgresos().isEmpty()) {
+            System.out.println("\nNo estás inscrito en ningún Learning Path.");
             return;
         }
 
         System.out.println("\n--- Learning Paths Inscritos ---");
-        for (Integer id : progresos.keySet()) {
-            System.out.println("ID: " + id);
+        for (Integer idLearningPath : estudiante.getProgresos().keySet()) {
+            System.out.println("ID: " + idLearningPath);
         }
 
         System.out.print("\nSeleccione el ID del Learning Path para ver su progreso: ");
         int idLearningPath = scanner.nextInt();
-        scanner.nextLine();  // Limpiar buffer
+        scanner.nextLine(); // Limpiar buffer
 
-        ProgresoEstudiante progreso = progresos.get(idLearningPath);
+        ProgresoEstudiante progreso = estudiante.getProgresos().get(idLearningPath);
         if (progreso == null) {
-            System.out.println("No estás inscrito en el Learning Path con ID " + idLearningPath + ".");
+            System.out.println("No estás inscrito en este Learning Path.");
             return;
         }
 
-        // Mostrar detalles del progreso
         System.out.println("\n--- Progreso del Learning Path ID " + idLearningPath + " ---");
         System.out.println("Porcentaje completado: " + progreso.getPorcentajeCompletado() + "%");
 
@@ -222,6 +221,52 @@ public class EstudianteUi {
             System.out.println("- " + actividad.getNombre() + " (Duración: " + actividad.getDuracion() + " min)");
         }
     }
+
+
+    
+    private static void marcarInicioActividad(Estudiante estudiante) {
+        if (estudiante.getProgresos().isEmpty()) {
+            System.out.println("\nNo estás inscrito en ningún Learning Path.");
+            return;
+        }
+
+        System.out.println("\n--- Learning Paths Inscritos ---");
+        for (Integer idLearningPath : estudiante.getProgresos().keySet()) {
+            System.out.println("- ID: " + idLearningPath);
+        }
+
+        System.out.print("\nIngrese el ID del Learning Path: ");
+        int idLearningPath = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        ProgresoEstudiante progreso = estudiante.getProgresos().get(idLearningPath);
+        if (progreso == null) {
+            System.out.println("No estás inscrito en este Learning Path.");
+            return;
+        }
+
+        System.out.println("\nActividades pendientes:");
+        for (Actividad actividad : progreso.getActividadesPendientes()) {
+            System.out.println("- " + actividad.getNombre());
+        }
+
+        System.out.print("\nIngrese el nombre de la actividad para marcar inicio: ");
+        String nombreActividad = scanner.nextLine();
+
+        boolean inicioExitoso = progreso.iniciarActividad(nombreActividad);
+        if (inicioExitoso) {
+            System.out.println("Actividad marcada como iniciada.");
+            // Actualizar persistencia
+            List<Estudiante> estudiantes = ArchivoPersistencia.cargarEstudiantes();
+            estudiantes.removeIf(e -> e.getIdEstudiante() == estudiante.getIdEstudiante());
+            estudiantes.add(estudiante);
+            ArchivoPersistencia.actualizarEstudiantes(estudiantes);
+        }
+    }
+
+
+
+
 
     
 

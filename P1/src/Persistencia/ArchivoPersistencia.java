@@ -99,17 +99,22 @@ public class ArchivoPersistencia {
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(",");
                 
-                // Leer los campos obligatorios
-                int id = Integer.parseInt(partes[0]);
-                int idProfesor = Integer.parseInt(partes[1]); // Leer ID del profesor
-                String titulo = partes[2];
-                String descripcion = partes[3];
-                String tipo = partes[4];
-                String objetivo = partes[5];
-                String nivelDificultad = partes[6];
-                double tiempoEstimado = Double.parseDouble(partes[7]);
-                
-                // Crear el Learning Path
+                // Validación básica: la línea debe tener al menos 8 partes (ID, ID Profesor, título, etc.)
+                if (partes.length < 8) {
+                    System.out.println("Línea inválida o incompleta en el archivo de Learning Paths: " + linea);
+                    continue; // Saltar líneas incorrectas
+                }
+
+                int id = Integer.parseInt(partes[0]); // ID del Learning Path
+                int idProfesor = Integer.parseInt(partes[1]); // ID del profesor
+                String titulo = partes[2]; // Título del Learning Path
+                String descripcion = partes[3]; // Descripción
+                String tipo = partes[4]; // Tipo (curso, examen, etc.)
+                String objetivo = partes[5]; // Objetivo
+                String nivelDificultad = partes[6]; // Nivel de dificultad
+                double tiempoEstimado = Double.parseDouble(partes[7]); // Tiempo estimado en horas
+
+                // Crear instancia de LearningPath
                 LearningPath lp = new LearningPath(id, idProfesor, titulo, descripcion, tipo, objetivo, nivelDificultad, tiempoEstimado);
 
                 // Cargar actividades, si existen
@@ -117,21 +122,32 @@ public class ArchivoPersistencia {
                     String[] actividades = partes[8].split("\\|");
                     for (String actividadStr : actividades) {
                         String[] actividadPartes = actividadStr.split(";");
-                        int idActividad = Integer.parseInt(actividadPartes[0]);
-                        String nombre = actividadPartes[1];
-                        String tipoActividad = actividadPartes[2];
-                        String descripcionActividad = actividadPartes[3];
-                        int duracion = Integer.parseInt(actividadPartes[4]);
+                        
+                        // Validar que la actividad tenga los datos mínimos necesarios
+                        if (actividadPartes.length < 5) {
+                            System.out.println("Actividad inválida en el archivo: " + actividadStr);
+                            continue; // Saltar actividades incompletas
+                        }
+                        
+                        int idActividad = Integer.parseInt(actividadPartes[0]); // ID de la actividad
+                        String nombre = actividadPartes[1]; // Nombre de la actividad
+                        String tipoActividad = actividadPartes[2]; // Tipo de actividad
+                        String descripcionActividad = actividadPartes[3]; // Descripción de la actividad
+                        int duracion = Integer.parseInt(actividadPartes[4]); // Duración en minutos
+
+                        // Crear la actividad
                         Actividad actividad = new Actividad(nombre, tipoActividad, idActividad, descripcionActividad, "", "", duracion);
+
                         lp.agregarActividad(actividad);
                     }
                 }
 
-                // Agregar el Learning Path a la lista
                 learningPaths.add(lp);
             }
-        } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        } catch (IOException e) {
             System.out.println("Error al cargar Learning Paths: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Error en el formato del archivo de Learning Paths: " + e.getMessage());
         }
         return learningPaths;
     }
@@ -139,37 +155,41 @@ public class ArchivoPersistencia {
 
 
 
-    public static void guardarLearningPath(LearningPath learningPath) {
-        try (FileWriter fw = new FileWriter(LEARNING_PATHS_PATH, true)) {
-            fw.write(
-                learningPath.getId() + "," +
-                learningPath.getIdProfesor() + "," + // Guardar el ID del profesor
-                learningPath.getTitulo() + "," +
-                learningPath.getDescripcion() + "," +
-                learningPath.getTipo() + "," +
-                learningPath.getObjetivo() + "," +
-                learningPath.getNivelDificultad() + "," +
-                learningPath.getTiempoEstimado()
-            );
 
-            // Guardar actividades si existen
-            if (!learningPath.getActividades().isEmpty()) {
-                fw.write(",");
-                for (Actividad actividad : learningPath.getActividades()) {
-                    fw.write(
-                        actividad.getId() + ";" +
-                        actividad.getNombre() + ";" +
-                        actividad.getTipo() + ";" +
-                        actividad.getDescripcion() + ";" +
-                        actividad.getDuracion() + ";"
-                    );
+
+
+
+    public static void guardarLearningPath(LearningPath lp) {
+        try (FileWriter fw = new FileWriter(LEARNING_PATHS_PATH, true)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(lp.getId()).append(",");
+            sb.append(lp.getTitulo()).append(",");
+            sb.append(lp.getDescripcion()).append(",");
+            sb.append(lp.getTipo()).append(",");
+            sb.append(lp.getObjetivo()).append(",");
+            sb.append(lp.getNivelDificultad()).append(",");
+            sb.append(lp.getTiempoEstimado()).append(",");
+            sb.append(lp.getIdProfesor()).append(","); // Agregar ID del profesor
+
+            // Agregar actividades, si existen
+            if (!lp.getActividades().isEmpty()) {
+                List<String> actividades = new ArrayList<>();
+                for (Actividad actividad : lp.getActividades()) {
+                    actividades.add(actividad.getId() + ";" +
+                                    actividad.getNombre() + ";" +
+                                    actividad.getTipo() + ";" +
+                                    actividad.getDescripcion() + ";" +
+                                    actividad.getDuracion());
                 }
+                sb.append(String.join("|", actividades));
             }
-            fw.write("\n");
+
+            fw.write(sb.toString() + "\n");
         } catch (IOException e) {
-            System.out.println("Error al guardar Learning Path: " + e.getMessage());
+            System.out.println("Error al guardar el Learning Path: " + e.getMessage());
         }
     }
+
 
     
     
@@ -223,6 +243,65 @@ public class ArchivoPersistencia {
             System.out.println("Error al actualizar estudiantes: " + e.getMessage());
         }
     }
+
+    private static String serializarActividades(List<Actividad> actividades) {
+        StringBuilder sb = new StringBuilder();
+        for (Actividad actividad : actividades) {
+            sb.append(actividad.getId()).append(";")
+              .append(actividad.getNombre()).append(";")
+              .append(actividad.getTipo()).append(";")
+              .append(actividad.getDescripcion()).append(";")
+              .append(actividad.getDuracion());
+
+            if (!actividad.getActividadesSeguimiento().isEmpty()) {
+                sb.append("->");
+                List<String> idsSeguimiento = actividad.getActividadesSeguimiento().stream()
+                    .map(a -> String.valueOf(a.getId()))
+                    .toList();
+                sb.append(String.join("|", idsSeguimiento));
+            }
+
+            sb.append("|");
+        }
+        return sb.toString();
+    }
+    
+    private static void cargarActividadesConSeguimiento(LearningPath lp, String[] partes) {
+        if (partes.length > 8) {
+            String[] actividades = partes[8].split("\\|");
+            for (String actividadStr : actividades) {
+                String[] actividadPartes = actividadStr.split("->");
+                String[] datosActividad = actividadPartes[0].split(";");
+
+                int idActividad = Integer.parseInt(datosActividad[0]);
+                String nombre = datosActividad[1];
+                String tipoActividad = datosActividad[2];
+                String descripcionActividad = datosActividad[3];
+                int duracion = Integer.parseInt(datosActividad[4]);
+
+                Actividad actividad = new Actividad(nombre, tipoActividad, idActividad, descripcionActividad, "", "", duracion);
+
+                // Cargar actividades de seguimiento
+                if (actividadPartes.length > 1) {
+                    String[] idsSeguimiento = actividadPartes[1].split("\\|");
+                    for (String idSeguimiento : idsSeguimiento) {
+                        int idSeg = Integer.parseInt(idSeguimiento);
+                        Actividad actividadSeguimiento = lp.getActividades().stream()
+                            .filter(a -> a.getId() == idSeg)
+                            .findFirst()
+                            .orElse(null);
+
+                        if (actividadSeguimiento != null) {
+                            actividad.agregarActividadSeguimiento(actividadSeguimiento);
+                        }
+                    }
+                }
+
+                lp.agregarActividad(actividad);
+            }
+        }
+    }
+
 
 
 

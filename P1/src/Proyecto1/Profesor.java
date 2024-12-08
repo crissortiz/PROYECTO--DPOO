@@ -204,6 +204,31 @@ public class Profesor extends Usuario {
         this.crearLearningPath(clon); // Agregar el clon a los Learning Paths del profesor
         return clon;
     }
+    
+    public void establecerActividadesSeguimiento(LearningPath lp, int idActividad, List<Integer> idsActividadesSeguimiento) {
+        Actividad actividadBase = lp.getActividades().stream()
+            .filter(a -> a.getId() == idActividad)
+            .findFirst()
+            .orElse(null);
+
+        if (actividadBase == null) {
+            System.out.println("La actividad base no se encontró en el Learning Path.");
+            return;
+        }
+
+        for (int id : idsActividadesSeguimiento) {
+            Actividad actividadSeguimiento = lp.getActividades().stream()
+                .filter(a -> a.getId() == id)
+                .findFirst()
+                .orElse(null);
+
+            if (actividadSeguimiento != null) {
+                actividadBase.agregarActividadSeguimiento(actividadSeguimiento);
+            }
+        }
+
+        System.out.println("Actividades de seguimiento establecidas para la actividad: " + actividadBase.getNombre());
+    }
 
 
     

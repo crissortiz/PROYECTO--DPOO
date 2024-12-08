@@ -23,8 +23,12 @@ public class ProgresoEstudiante {
     }
 
     public List<Actividad> getActividadesPendientes() {
+        if (actividadesPendientes.isEmpty()) {
+            System.out.println("No hay actividades pendientes en este Learning Path.");
+        }
         return actividadesPendientes;
     }
+
 
     public List<Actividad> getActividadesCompletadas() {
         return actividadesCompletadas;
@@ -35,20 +39,20 @@ public class ProgresoEstudiante {
         actividadesPendientes.add(actividad);
     }
 
-    // Completar una actividad: mover de pendientes a completadas
-    public boolean completarActividad(String nombreActividad) {
+    public boolean iniciarActividad(String nombreActividad) {
         for (Actividad actividad : actividadesPendientes) {
             if (actividad.getNombre().equals(nombreActividad)) {
                 actividadesPendientes.remove(actividad); // Remover de pendientes
                 actividadesCompletadas.add(actividad);  // Mover a completadas
-                actualizarProgreso(); // Recalcular el porcentaje completado
-                System.out.println("Actividad '" + nombreActividad + "' completada.");
-                return true; // Indicar que la actividad fue completada
+                actualizarProgreso(); // Actualizar progreso
+                System.out.println("Actividad '" + nombreActividad + "' iniciada exitosamente.");
+                return true;
             }
         }
-        System.out.println("La actividad '" + nombreActividad + "' no fue encontrada o ya estaba completada.");
+        System.out.println("Actividad '" + nombreActividad + "' no encontrada o ya iniciada.");
         return false; // No se encontró la actividad
     }
+
 
     // Actualizar el porcentaje completado según las actividades realizadas
     private void actualizarProgreso() {
