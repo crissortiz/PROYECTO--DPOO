@@ -28,10 +28,8 @@ public class CrearLearningPathGui extends JFrame {
         JTextField txtNivelDificultad = new JTextField();
         JTextField txtTiempoEstimado = new JTextField();
 
-        // Botón para crear el Learning Path
         JButton btnCrear = new JButton("Crear");
 
-        // Etiquetas y campos
         panel.add(new JLabel("Título:"));
         panel.add(txtTitulo);
         panel.add(new JLabel("Descripción:"));

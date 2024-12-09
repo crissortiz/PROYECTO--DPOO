@@ -74,7 +74,8 @@ public class EstudianteUi {
         Estudiante nuevoEstudiante = new Estudiante(nombreUsuario, contrasena, correo, idEstudiante);
 
         // Guardar el nuevo estudiante en el archivo
-        ArchivoPersistencia.guardarEstudiante(nuevoEstudiante);  // Cambiamos a guardarEstudiante
+        ArchivoPersistencia.guardarEstudiante(nuevoEstudiante); 
+        
 
         System.out.println("Registro exitoso. De ahora en adelante podrias iniciar sesión.");
         
@@ -103,10 +104,10 @@ public class EstudianteUi {
                     inscribirseEnLearningPath(estudiante);
                     break;
                 case 3:
-                	verProgresoLearningPath(estudiante); // Llamar al nuevo método
+                	verProgresoLearningPath(estudiante); 
                     break;
                 case 4:
-                	marcarInicioActividad(estudiante); // Llamar al nuevo método
+                	marcarInicioActividad(estudiante); 
                     break;
                 case 5:
                     System.out.println("Saliendo...");
