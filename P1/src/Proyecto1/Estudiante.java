@@ -2,6 +2,8 @@ package Proyecto1;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;;
 
 public class Estudiante extends Usuario {
     private int idEstudiante;
@@ -58,7 +60,18 @@ public class Estudiante extends Usuario {
     public ProgresoEstudiante getProgreso(int idLearningPath) {
         return progresos.get(idLearningPath);
     }
+    
+    public List<LearningPath> getLearningPaths(List<LearningPath> allLearningPaths) {
+        List<LearningPath> inscritos = new ArrayList<>();
 
+        for (LearningPath lp : allLearningPaths) {
+            if (progresos.containsKey(lp.getId())) {
+                inscritos.add(lp);
+            }
+        }
+
+        return inscritos;
+    }
 
 
 	public void hacerReseña(LearningPath lp, String comentario, int calificacion) {

@@ -73,7 +73,7 @@ public class InicioSesionGui extends JFrame {
                 }
 
                 // Validar estudiantes
-                for (Estudiante estudiante : estudiantes) { // Cambié 'e' a 'estudiante'
+                for (Estudiante estudiante : estudiantes) { 
                     if (estudiante.getNombreUsuario().equals(usuario) && estudiante.getContrasena().equals(contrasena)) {
                         JOptionPane.showMessageDialog(null, "Inicio de sesión exitoso (Estudiante)");
                         new EstudianteGui(estudiante).setVisible(true); // Abre menú estudiante
